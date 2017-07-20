@@ -6,9 +6,15 @@ import csv
 import time
 import random
 
+YOUTUBE_BASE_URL = "https://www.youtube.com/watch?v="
+
 def emoji():
     emojis = ['F600',"F642","F3BC","F60C","F643","F632","F468","F57A","F447","F44C","F442","F952","F3A8","F508","F50A","F4E2","F3BC","F3B5","F3B7","F3B9","F3BB","F4FC"]
-    return ("\U0001"+emojis[random.randrange(len(emojis))]).decode('unicode-escape').encode("utf-8")
+    #return ("\U0001"+emojis[random.randrange(len(emojis))]).decode('unicode-escape').encode("utf-8")
+
+def tweetLanguage(count,year):
+    tweet = (str(count)+") " if count>0 else '')+"On this day in "+year+", Tony recorded this: "
+    return tweet
 
 # == OAuth Authentication ==
 #
@@ -38,8 +44,8 @@ api = tweepy.API(auth)
 # If the application settings are set for "Read and Write" then
 # this line should tweet out the message to your account's
 # timeline. The "Read and Write" setting is on https://dev.twitter.com/apps
-day = time.strftime("%d").lstrip('0')
-month = time.strftime("%m").lstrip('0')
+day = "19"#time.strftime("%d").lstrip('0')
+month = "7"#time.strftime("%m").lstrip('0')
 fixedday = day
 fixedmonth = month
 if(len(day) == 1):
@@ -65,23 +71,27 @@ with open('clean_mmw_youtube.csv', 'rb') as csvfile:
                     row[3] = date;
                     datesfound.append(row);
 print("day: ",day,"month: ",month)
+id = None
 if len(datesfound)>0:
-    choice = datesfound[random.randrange(len(datesfound))]
-    print("choice ",choice)
-    year = ""
-    if choice[3].find("/")>-1:
-        year = choice[3].split("/")[2];
-    else:
-        year = choice[3].split("-")[0];
-    #mmw
-    #info
-    #real
-    #date
-    #part?
-    #elapsed
-    #youtube id
-    tweet = "On this day in "+year+", Tony recorded this: https://www.youtube.com/watch?v="+choice[6]+" "+emoji();
-    print (tweet)
-    api.update_status(status=tweet)
+    for i in range(0,len(datesfound)):
+        if datesfound[i][3].find("/")>-1:
+            year = datesfound[i][3].split("/")[2];
+        else:
+            year = datesfound[i][3].split("-")[0];
+        tweet = tweetLanguage(i,year) + YOUTUBE_BASE_URL+datesfound[i][6]#+" "+emoji();
+        api.update_status(tweet,id)
+        if i == 0:
+            #once this id is set the update_status method will start posting tweets as responses
+            id = api.user_timeline()[0].id
+        print (tweet)
+    #
 else:
     print("no performances today")
+
+#mmw
+#info
+#real
+#date
+#part?
+#elapsed
+#youtube id
