@@ -8,7 +8,7 @@ import random
 
 def emoji():
     emojis = ['F600',"F642","F3BC","F60C","F643","F632","F468","F57A","F447","F44C","F442","F952","F3A8","F508","F50A","F4E2","F3BC","F3B5","F3B7","F3B9","F3BB","F4FC"]
-    return ("\U0001"+emojis[random.randrange(len(emojis))]).decode('unicode-escape').encode("utf-8")
+    #return ("\U0001"+emojis[random.randrange(len(emojis))]).decode('unicode-escape').encode("utf-8")
 
 # == OAuth Authentication ==
 #
@@ -49,7 +49,7 @@ if(len(month) == 1):
 #print(fixedday,fixedmonth)
 
 datesfound = []
-with open('clean_mmw_youtube.csv', 'rb') as csvfile:
+with open('clean_mmw_youtube.csv', 'rt') as csvfile:
     spamreader = csv.reader(csvfile, delimiter=',', quotechar='|')
     for row in spamreader:
         datestring = row[3].split("&")
@@ -80,7 +80,7 @@ if len(datesfound)>0:
     #part?
     #elapsed
     #youtube id
-    tweet = "On this day in "+year+", Tony recorded this: https://www.youtube.com/watch?v="+choice[6]+" "+emoji();
+    tweet = "On this day in "+year+", Tony recorded this: https://www.youtube.com/watch?v="+choice[6]+" "#+emoji();
     print (tweet)
     api.update_status(status=tweet)
 else:
