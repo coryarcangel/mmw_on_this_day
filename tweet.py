@@ -7,7 +7,6 @@ import csv
 import time
 import random
 
-
 YOUTUBE_BASE_URL = "https://www.youtube.com/watch?v="
 consumer_key=os.environ["CONSUMER_KEY"]
 consumer_secret=os.environ["CONSUMER_SECRET"]
@@ -40,31 +39,39 @@ def main():
             else:
                 tweet = getSecondTweet(info)
             print(tweet)
-            #api.update_status(tweet,id)
+            api.update_status(tweet,id)
                 #once this id is set the update_status method will start posting tweets as responses
-                #id = api.user_timeline()[0].id
+            id = api.user_timeline()[0].id
     else:
         print("no performances today")
 
 def parseMinutes(timestamp):
     return timestamp.split(":")[0]
 
+def printEmoji(inp):
+    #if we in python 2.*
+    #return input.decode('unicode-escape').encode("utf-8")
+    print(inp)
+    return input
+
 def emoji(code=False):
     emojis = ['F600',"F642","F3BC","F60C","F643","F632","F468","F57A","F447","F44C","F442","F952","F3A8","F508","F50A","F4E2","F3BC","F3B5","F3B7","F3B9","F3BB","F4FC"]
     if(code):
-        return ("\U0001"+code).decode('unicode-escape').encode("utf-8")
+        return printEmoji(("\U0001f604"))
     else:
-        return ("\U0001"+emojis[random.randrange(len(emojis))]).decode('unicode-escape').encode("utf-8")
+        return printEmoji(("\U0001f604"))#return printEmoji(('\U0001'+emojis[random.randrange(len(emojis))]))
 
 def eGroup(amnt=0):
     out = ""
-    groups = [['F600',"F642","F3BC","F60C"],["F643","F632","F468","F57A","F447","F44C"],["F442","F952","F3A8","F508","F50A","F4E2","F3BC"],["F3B5","F3B7","F3B9","F3BB","F4FC"]]
     groups = [["F3A7","","F3BC","F3A4"],["F4DE","F4DF","F39B"],["23F0","F39B","F39E"],["F49A","F499","F49C"],["F192","F193"],["F3B5","F3B6","2714"],["F550","F555","F556"],["F551","F55A","F55B"]] #["262F","262E","F4AF"]
+    groups = [["F3A7","","F3BC","F3A4"],["F4DE","F4DF","F39B"],["23F0","F39B","F39E"],["F49A","F499","F49C"],["F192","F193"],["F3B5","F3B6","2714"],["F550","F555","F556"],["F551","F55A","F55B"]] #["262F","262E","F4AF"]
+    groups = [["\U0001F3A7","\U0001F3BC","\U0001F3A4"],["\U0001F4DE","\U0001F4DF","\U0001F39B"],["\U000123F0","\U0001F39B","\U0001F39E"],["\U0001F49A","\U0001F499","\U0001F49C"],["\U0001F192","\U0001F193","\U0001F193"],["\U0001F3B5","\U0001F3B6","\U00012714"],["\U0001F550","\U0001F555","\U0001F556"],["\U0001F551","\U0001F55A","\U0001F55B"]]
     group = groups[random.randrange(len(groups))]
     if(amnt == 0):
         amnt = 1+random.randrange(len(group)-1)
     for i in range(0,amnt):
-        out+= " "+emoji(group[i])
+        # python 2.****out+= " "+emoji(group[i])
+        out+= " " + group[i]
     return out
 
 def getYear(datefound):
@@ -87,13 +94,19 @@ def getSessionInfo(session,i,total):
     'year': year,
     'yearsAgo': 2017-int(year),
     'count' : str(i+1),
+    'part': session[1],
     'total': str(total)
     }
 
 def getFirstTweet(info):
     infoknown = (len(info["piano"]) + len(info["where"]) + len(info["who"])>0)
     if(infoknown):
-        out = str(info["yearsAgo"])+" yrs ago,"+info["date"]+ " "+emoji("F4C6")+"  Tony Conrad"+ eGroup() +"  played a "+info["piano"]+ eGroup() +"  @ "+info["where"]
+        pianoPhrase =("a "+ info["piano"]) if info["piano"] != "piano" else 'piano'
+        locationPhrase = (" @ "+ info["where"]) if info["where"] != "where" else ''
+        whoPhrase = ("w/ "+ info["who"]) if len(info["who"]) and info["who"] != "who" else ''
+        #out = str(info["yearsAgo"])+" yrs ago,"+info["date"]+ " \U0001F4C6  Tony Conrad"+ eGroup() +"  played a "+info["piano"]+ eGroup() +"  @ "+info["where"]
+        print(info["who"])
+        out = str(info["yearsAgo"])+ " yrs ago,"+info["date"]+ " \U0001F4C6  Tony Conrad"+ eGroup() +"  played "+pianoPhrase+ eGroup()+ " " +locationPhrase+" "+whoPhrase 
     else:
         out = str(info["yearsAgo"])+" yrs ago,"+info["date"]+ " Tony Conrad played piano for "+info["minutes"]+ ", location and piano unknown"
     out += " " +YOUTUBE_BASE_URL+info["youtubeId"]+ " " + info['which']
@@ -120,15 +133,13 @@ def fixZero(num):
 
 def getPerformances(month,day):
     performancesFound = []
-    with open('clean_mmw_youtube2.csv', 'rb') as csvfile:
+    with open('clean_mmw_youtube2.csv', 'rt') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in spamreader:
             datestring = row[3].split("&")
-            #print(datestring)
             for date in datestring:
                 date = date.replace(" ","")
                 if(date.find(month+"/"+day+"/")==0):
-                    #print ("oh fuk", date)
                     row[3] = date;
                     performancesFound.append(row);
                 else:
@@ -138,4 +149,3 @@ def getPerformances(month,day):
     return performancesFound
 
 main()
->>>>>>> 223bc1fa51922626388ae69bb46e568a02ba7f9c
