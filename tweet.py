@@ -20,12 +20,12 @@ def main():
     auth.set_access_token(access_token, access_token_secret)
 
     api = tweepy.API(auth) # OK WE ARE IN
-    day = "25"#time.strftime("%d").lstrip('0')
-    month = "12"#time.strftime("%m").lstrip('0')
+    day = time.strftime("%d").lstrip('0')
+    month = time.strftime("%m").lstrip('0')
     performances = getPerformances(month,day)#[]
     total = len(performances)
     minutetotal = 0
-    id = None
+    theId = None
     if len(performances)>0:
         for i in range(0,total):
             minutetotal += int(parseMinutes(performances[i][5]))
@@ -39,9 +39,9 @@ def main():
             else:
                 tweet = getSecondTweet(info)
             print(tweet)
-            api.update_status(tweet,id)
-                #once this id is set the update_status method will start posting tweets as responses
-            id = api.user_timeline()[0].id
+            api.update_status(tweet,theId)
+            if(theId == None):
+                theId = api.user_timeline()[0].id
     else:
         print("no performances today")
 
@@ -63,9 +63,9 @@ def emoji(code=False):
 
 def eGroup(amnt=0):
     out = ""
+    groups = [["F3A7","","F3BC","F3A4"],["F4DE","F4DF","F39B"],["F550","F39B","F39E"],["F49A","F499","F49C"],["F192","F193"],["F3B5","F3B6","2714"],["F550","F555","F556"],["F551","F55A","F55B"]] #["262F","262E","F4AF"]
     groups = [["F3A7","","F3BC","F3A4"],["F4DE","F4DF","F39B"],["23F0","F39B","F39E"],["F49A","F499","F49C"],["F192","F193"],["F3B5","F3B6","2714"],["F550","F555","F556"],["F551","F55A","F55B"]] #["262F","262E","F4AF"]
-    groups = [["F3A7","","F3BC","F3A4"],["F4DE","F4DF","F39B"],["23F0","F39B","F39E"],["F49A","F499","F49C"],["F192","F193"],["F3B5","F3B6","2714"],["F550","F555","F556"],["F551","F55A","F55B"]] #["262F","262E","F4AF"]
-    groups = [["\U0001F3A7","\U0001F3BC","\U0001F3A4"],["\U0001F4DE","\U0001F4DF","\U0001F39B"],["\U000123F0","\U0001F39B","\U0001F39E"],["\U0001F49A","\U0001F499","\U0001F49C"],["\U0001F192","\U0001F193","\U0001F193"],["\U0001F3B5","\U0001F3B6","\U00012714"],["\U0001F550","\U0001F555","\U0001F556"],["\U0001F551","\U0001F55A","\U0001F55B"]]
+    groups = [["\U0001F3A7","\U0001F3BC","\U0001F3A4"],["\U0001F4DE","\U0001F4DF","\U0001F39B"],["⏰","\U0001F39B","\U0001F39E"],["\U0001F49A","\U0001F499","\U0001F49C"],["\U0001F192","\U0001F193","\U0001F193"],["\U0001F3B5","\U0001F3B6","✔️"],["\U0001F550","\U0001F555","\U0001F556"],["\U0001F551","\U0001F55A","\U0001F55B"],["☯️","☮️","💯"]]
     group = groups[random.randrange(len(groups))]
     if(amnt == 0):
         amnt = 1+random.randrange(len(group)-1)
@@ -89,7 +89,8 @@ def getSessionInfo(session,i,total):
     'where': ("" if session[8] =="where" else session[8]),
     'who': ("" if session[9] =="who" else session[9]),
     'minutes': parseMinutes(session[5]),
-    'date': session[3],
+    #'date': session[3],
+    'date': session[3].split("-")[1]+"/"+session[3].split("-")[2]+ "/"+session[3].split("-")[0],
     'youtubeId': session[6],
     'year': year,
     'yearsAgo': 2017-int(year),
@@ -104,11 +105,11 @@ def getFirstTweet(info):
         pianoPhrase =("a "+ info["piano"]) if info["piano"] != "piano" else 'piano'
         locationPhrase = (" @ "+ info["where"]) if info["where"] != "where" else ''
         whoPhrase = ("w/ "+ info["who"]) if len(info["who"]) and info["who"] != "who" else ''
-        #out = str(info["yearsAgo"])+" yrs ago,"+info["date"]+ " \U0001F4C6  Tony Conrad"+ eGroup() +"  played a "+info["piano"]+ eGroup() +"  @ "+info["where"]
+        #out = str(info["yearsAgo"])+" yrs ago, "+info["date"]+ " \U0001F4C6 Tony Conrad"+ eGroup() +"  played a "+info["piano"]+ eGroup() +"  @ "+info["where"]
         print(info["who"])
-        out = str(info["yearsAgo"])+ " yrs ago,"+info["date"]+ " \U0001F4C6  Tony Conrad"+ eGroup() +"  played "+pianoPhrase+ eGroup()+ " " +locationPhrase+" "+whoPhrase 
+        out = str(info["yearsAgo"])+ " yrs ago, "+info["date"]+ " \U0001F4C6  Tony Conrad"+ eGroup() +"  played "+pianoPhrase+ eGroup()+ " " +locationPhrase+" "+whoPhrase 
     else:
-        out = str(info["yearsAgo"])+" yrs ago,"+info["date"]+ " Tony Conrad played piano for "+info["minutes"]+ ", location and piano unknown"
+        out = str(info["yearsAgo"])+" yrs ago,"+info["date"]+ " \U0001F4C6  Tony Conrad played piano \U0001F3A4\U0001F3B5🎹  for "+info["minutes"]+ " minutes, location and piano unknown"
     out += " " +YOUTUBE_BASE_URL+info["youtubeId"]+ " " + info['which']
     return out
 
