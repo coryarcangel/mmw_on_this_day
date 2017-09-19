@@ -20,8 +20,8 @@ def main():
     auth.set_access_token(access_token, access_token_secret)
 
     api = tweepy.API(auth) # OK WE ARE IN
-    day = time.strftime("%d").lstrip('0')
-    month = time.strftime("%m").lstrip('0')
+    day = "18"#time.strftime("%d").lstrip('0')
+    month = "9"#time.strftime("%m").lstrip('0')
     performances = getPerformances(month,day)#[]
     total = len(performances)
     minutetotal = 0
@@ -31,10 +31,10 @@ def main():
             minutetotal += int(parseMinutes(performances[i][5]))
         for i in range(0,total):
             session = performances[i]
-            print(session)
             info = getSessionInfo(session,i,total)
             info['minutes'] = str(minutetotal)
             info['which'] = "("+info['count']+'/'+info['total']+")"
+            print(info)
             if(i == 0):
                 tweet = getFirstTweet(info)#formatTweet(i,info["year"],total,info["minutes"],info["youtubeId"])+" "+emoji();
             else:
@@ -100,7 +100,7 @@ def getSessionInfo(session,i,total):
     'year': year,
     'yearsAgo': 2017-int(year),
     'count' : str(i+1),
-    'part': session[1],
+    'part': session[4],
     'total': str(total)
     }
 
@@ -119,7 +119,7 @@ def getFirstTweet(info):
     return out
 
 def getSecondTweet(info):
-    out = "Tony Conrad, "+ info["date"]+", part "+ info["count"] + eGroup(3)+"  "
+    out = "Tony Conrad, "+ info["date"]+", part "+ info["part"] + eGroup(3)+"  "
     out += " " +YOUTUBE_BASE_URL+info["youtubeId"]+ " " + info['which']
 
     return out
