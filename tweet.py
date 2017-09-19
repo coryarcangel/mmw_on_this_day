@@ -31,6 +31,7 @@ def main():
             minutetotal += int(parseMinutes(performances[i][5]))
         for i in range(0,total):
             session = performances[i]
+            print(session)
             info = getSessionInfo(session,i,total)
             info['minutes'] = str(minutetotal)
             info['which'] = "("+info['count']+'/'+info['total']+")"
@@ -39,9 +40,9 @@ def main():
             else:
                 tweet = getSecondTweet(info)
             print(tweet)
-            api.update_status(tweet,theId)
-            if(theId == None):
-                theId = api.user_timeline()[0].id
+            #api.update_status(tweet,theId)
+            #if(theId == None):
+            #    theId = api.user_timeline()[0].id
     else:
         print("no performances today")
 
@@ -84,13 +85,17 @@ def getYear(datefound):
 
 def getSessionInfo(session,i,total):
     year = getYear(session)
+    if(session[3].index("/")):
+        date = session[3]
+    else:
+        date = session[3].split("-")[1]+"/"+session[3].split("-")[2]+ "/"+session[3].split("-")[0]
     return {
     'piano' : ("" if session[7] =="piano" else session[7]),
     'where': ("" if session[8] =="where" else session[8]),
     'who': ("" if session[9] =="who" else session[9]),
     'minutes': parseMinutes(session[5]),
     #'date': session[3],
-    'date': session[3].split("-")[1]+"/"+session[3].split("-")[2]+ "/"+session[3].split("-")[0],
+    'date': date,#session[3].split("-")[1]+"/"+session[3].split("-")[2]+ "/"+session[3].split("-")[0],
     'youtubeId': session[6],
     'year': year,
     'yearsAgo': 2017-int(year),
