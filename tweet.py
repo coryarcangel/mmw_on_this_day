@@ -1,6 +1,8 @@
 from __future__ import absolute_import, print_function
 from functools import reduce
 
+import sys
+import string
 import os
 import tweepy
 import csv
@@ -14,14 +16,13 @@ access_token=os.environ["ACCESS_TOKEN"]
 access_token_secret=os.environ["ACCESS_TOKEN_SECRET"]
 counter = 0
 
-
 def main():
     auth = tweepy.OAuthHandler(consumer_key, consumer_secret) #https://dev.twitter.com/apps
     auth.set_access_token(access_token, access_token_secret)
 
     api = tweepy.API(auth) # OK WE ARE IN
-    day = "18"#time.strftime("%d").lstrip('0')
-    month = "9"#time.strftime("%m").lstrip('0')
+    day = sys.argv[2] if len(sys.argv)>2 else time.strftime("%d").lstrip('0')
+    month = sys.argv[1] if len(sys.argv)>1 else time.strftime("%m").lstrip('0')
     performances = getPerformances(month,day)#[]
     total = len(performances)
     minutetotal = 0
@@ -34,7 +35,6 @@ def main():
             info = getSessionInfo(session,i,total)
             info['minutes'] = str(minutetotal)
             info['which'] = "("+info['count']+'/'+info['total']+")"
-            print(info)
             if(i == 0):
                 tweet = getFirstTweet(info)#formatTweet(i,info["year"],total,info["minutes"],info["youtubeId"])+" "+emoji();
             else:
@@ -72,7 +72,7 @@ def eGroup(amnt=0):
         amnt = 1+random.randrange(len(group)-1)
     for i in range(0,amnt):
         # python 2.****out+= " "+emoji(group[i])
-        out+= " " + group[i]
+        out+= "" + group[i]
     return out
 
 def getYear(datefound):
@@ -85,13 +85,14 @@ def getYear(datefound):
 
 def getSessionInfo(session,i,total):
     year = getYear(session)
-    if(session[3].index("/")):
+    #if(session[3].index("/")):
+    if("/" in session[3]):
         date = session[3]
     else:
         date = session[3].split("-")[1]+"/"+session[3].split("-")[2]+ "/"+session[3].split("-")[0]
     return {
     'piano' : ("" if session[7] =="piano" else session[7]),
-    'where': ("" if session[8] =="where" else session[8]),
+    'where': ("" if session[8] =="where" else session[8]).replace("&",","),
     'who': ("" if session[9] =="who" else session[9]),
     'minutes': parseMinutes(session[5]),
     #'date': session[3],
@@ -107,20 +108,22 @@ def getSessionInfo(session,i,total):
 def getFirstTweet(info):
     infoknown = (len(info["piano"]) + len(info["where"]) + len(info["who"])>0)
     if(infoknown):
-        pianoPhrase =("a "+ info["piano"]) if info["piano"] != "piano" else 'piano'
-        locationPhrase = (" @ "+ info["where"]) if info["where"] != "where" else ''
-        whoPhrase = ("w/ "+ info["who"]) if len(info["who"]) and info["who"] != "who" else ''
+        pianoArticle = "a "
+        if("David" in info["piano"] or "Ted" in info["piano"]):
+            pianoArticle = ""
+        pianoPhrase =(pianoArticle+ info["piano"]) if info["piano"] != "" else 'piano'
+        locationPhrase = (" @ "+ info["where"]) if info["where"] != "" else ''
+        whoPhrase = ("w/ "+ info["who"]) if len(info["who"]) and info["who"] != "" else ''
         #out = str(info["yearsAgo"])+" yrs ago, "+info["date"]+ " \U0001F4C6 Tony Conrad"+ eGroup() +"  played a "+info["piano"]+ eGroup() +"  @ "+info["where"]
-        print(info["who"])
-        out = str(info["yearsAgo"])+ " yrs ago, "+info["date"]+ " \U0001F4C6  Tony Conrad"+ eGroup() +"  played "+pianoPhrase+ eGroup()+ " " +locationPhrase+" "+whoPhrase 
+        out = str(info["yearsAgo"])+ " yrs ago, "+info["date"]+ " \U0001F4C6 Tony Conrad "+ eGroup() +" played "+pianoPhrase+ eGroup()+ " " +locationPhrase+" "+whoPhrase 
     else:
-        out = str(info["yearsAgo"])+" yrs ago,"+info["date"]+ " \U0001F4C6  Tony Conrad played piano \U0001F3A4\U0001F3B5🎹  for "+info["minutes"]+ " minutes, location and piano unknown"
+        out = str(info["yearsAgo"])+" yrs ago, "+info["date"]+ " \U0001F4C6 Tony Conrad played piano \U0001F3A4\U0001F3B5🎹  for "+info["minutes"]+ " minutes, location and piano unknown"
     out += " " +YOUTUBE_BASE_URL+info["youtubeId"]+ " " + info['which']
     return out
 
 def getSecondTweet(info):
-    out = "Tony Conrad, "+ info["date"]+", part "+ info["part"] + eGroup(3)+"  "
-    out += " " +YOUTUBE_BASE_URL+info["youtubeId"]+ " " + info['which']
+    out = "Tony Conrad, "+ info["date"]+", part "+ info["part"] + " "+eGroup(3)+" "
+    out +=YOUTUBE_BASE_URL+info["youtubeId"]+ " " + info['which']
 
     return out
 
@@ -139,6 +142,7 @@ def fixZero(num):
 
 def getPerformances(month,day):
     performancesFound = []
+    outPerformances = []
     with open('clean_mmw_youtube2.csv', 'rt') as csvfile:
         spamreader = csv.reader(csvfile, delimiter=',', quotechar='"')
         for row in spamreader:
@@ -152,6 +156,15 @@ def getPerformances(month,day):
                     if(date.find("-"+fixZero(month)+"-"+fixZero(day))==4):
                         row[3] = date;
                         performancesFound.append(row);
-    return performancesFound
+    #now, pick a year and remove everything else not in that year
+    if(len(performancesFound) == 0):
+        return outPerformances
+    randomPerformance = performancesFound[random.randrange(len(performancesFound))]
+    randomYear = getYear(randomPerformance)
+    for perf in performancesFound:
+        if(perf[3].find(randomYear)>-1):
+            outPerformances.append(perf)
+    #return performancesFound
+    return outPerformances
 
 main()
